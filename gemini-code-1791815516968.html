@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitBuddy: AI Fitness Plan Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-zinc-950 text-zinc-100 min-h-screen p-6 font-sans">
+    <div class="max-w-5xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-extrabold text-amber-500 tracking-wide">FitBuddy</h1>
+            <p class="text-zinc-400 mt-1">Google Gemini-Powered AI Fitness & Workout Planner</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Form Input Card -->
+            <div class="bg-zinc-900 p-6 rounded-xl border border-zinc-800 shadow-xl">
+                <h2 class="text-xl font-semibold mb-4 text-amber-400">Your Fitness Profile</h2>
+                <form id="fitForm" class="space-y-4">
+                    <div class="grid grid-cols-3 gap-3">
+                        <div>
+                            <label class="block text-xs font-medium text-zinc-400">Age</label>
+                            <input type="number" id="age" required value="28" class="mt-1 w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-zinc-400">Weight</label>
+                            <input type="text" id="weight" required placeholder="e.g. 75 kg" class="mt-1 w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-zinc-400">Height</label>
+                            <input type="text" id="height" required placeholder="e.g. 178 cm" class="mt-1 w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-300">Primary Goal</label>
+                        <select id="goal" class="mt-1 w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 focus:outline-none focus:border-amber-500">
+                            <option value="Fat Loss & Tone">Fat Loss & Toning</option>
+                            <option value="Muscle Building & Hypertrophy">Muscle Building (Hypertrophy)</option>
+                            <option value="Strength & Power">Strength & Power</option>
+                            <option value="General Health & Endurance">General Health & Endurance</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-300">Fitness Level</label>
+                        <select id="fitnessLevel" class="mt-1 w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 focus:outline-none focus:border-amber-500">
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-300">Available Equipment</label>
+                        <input type="text" id="equipment" required placeholder="e.g., Full Gym, Dumbbells Only, Bodyweight" class="mt-1 w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-zinc-300">Days Per Week</label>
+                        <select id="daysPerWeek" class="mt-1 w-full p-2.5 bg-zinc-950 border border-zinc-800 rounded-lg text-zinc-100 focus:outline-none focus:border-amber-500">
+                            <option value="3">3 Days</option>
+                            <option value="4" selected>4 Days</option>
+                            <option value="5">5 Days</option>
+                            <option value="6">6 Days</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold p-3 rounded-lg transition duration-200 shadow-lg">Generate Fitness Plan</button>
+                </form>
+            </div>
+
+            <!-- Output Display Card -->
+            <div class="bg-zinc-900 p-6 rounded-xl border border-zinc-800 shadow-xl flex flex-col">
+                <h2 class="text-xl font-semibold mb-4 text-amber-400">Your Custom Plan</h2>
+                <div id="output" class="flex-1 bg-zinc-950 border border-zinc-800 p-4 rounded-lg overflow-y-auto whitespace-pre-wrap text-sm text-zinc-300 min-h-[400px]">Your personalized workout and nutrition plan will appear here...</div>
+                <button id="copyBtn" class="mt-4 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-medium p-2.5 rounded-lg transition duration-200 text-sm">Copy Fitness Plan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('fitForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const outputDiv = document.getElementById('output');
+            outputDiv.textContent = "FitBuddy is designing your custom workout and nutrition plan with Gemini...";
+
+            const payload = {
+                age: parseInt(document.getElementById('age').value),
+                weight: document.getElementById('weight').value,
+                height: document.getElementById('height').value,
+                goal: document.getElementById('goal').value,
+                fitness_level: document.getElementById('fitnessLevel').value,
+                equipment: document.getElementById('equipment').value,
+                days_per_week: parseInt(document.getElementById('daysPerWeek').value)
+            };
+
+            try {
+                const res = await fetch('http://localhost:8000/api/generate-fitness-plan', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    outputDiv.textContent = data.fitness_plan;
+                } else {
+                    outputDiv.textContent = "Error generating fitness plan.";
+                }
+            } catch (err) {
+                outputDiv.textContent = "Connection error: Make sure the FastAPI backend is running.";
+            }
+        });
+
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const text = document.getElementById('output').textContent;
+            navigator.clipboard.writeText(text);
+            alert('Fitness plan copied to clipboard!');
+        });
+    </script>
+</body>
+</html>
